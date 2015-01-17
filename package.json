@@ -1,0 +1,26 @@
+{
+  "name": "creeper",
+  "version": "1.0.0",
+  "description": "creeper\r =======",
+  "main": "26uuu.js",
+  "dependencies": {
+    "cheerio": "^0.18.0",
+    "superagent": "^0.21.0"
+  },
+  "devDependencies": {
+    "superagent": "^0.21.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/huyanan/creeper.git"
+  },
+  "author": "huyanan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/huyanan/creeper/issues"
+  },
+  "homepage": "https://github.com/huyanan/creeper"
+}
