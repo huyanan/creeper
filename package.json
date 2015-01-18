@@ -4,8 +4,12 @@
   "description": "creeper\r =======",
   "main": "26uuu.js",
   "dependencies": {
+    "bufferhelper": "^0.2.0",
     "cheerio": "^0.18.0",
-    "superagent": "^0.21.0"
+    "graceful-fs": "^3.0.5",
+    "iconv-lite": "^0.4.6",
+    "superagent": "^0.21.0",
+    "superagentparse": "^1.0.0"
   },
   "devDependencies": {
     "superagent": "^0.21.0"
