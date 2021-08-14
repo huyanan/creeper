@@ -1,9 +1,28 @@
-﻿// console.log("hello");
+// console.log("hello");
 var baseUrl = "http://www.bao388.com";
 var imgDir = 'img/'
 var charset = 'UTF-8';
-var startPage = 10;
-var limit = 10;
+var startPage = 40;
+var limit = 800;
+var firstTime = true;
+
+/**
+ * 过滤条件
+ */
+var filters = [
+  "国模",
+  "模特",
+  "國模",
+  "美体",
+  "国产",
+  "国内",
+  "熟女",
+  "玉体",
+  "东方"
+]
+
+var imgUrls = [];
+var urlJson = 'url.json';
 // console.log("url is "+url);
 var request = require('superagent');
 var cheerio = require('cheerio');
@@ -134,9 +153,16 @@ function findImagePage(url, dir) {
               href: baseUrl + href,
               title: title
             };
-            arr.push(imgPage);
-            console.log('href', href);
-            console.log('title', title);
+            var filteRes = true;
+            for (var i = 0; i < filters.length; i++) {
+              if(title.indexOf(filters[i])!=-1)
+                filteRes = false;
+            }
+            if (filteRes) {
+              arr.push(imgPage);
+              console.log('href', href);
+              console.log('title', title);
+            }
           }
         });
 
@@ -146,7 +172,14 @@ function findImagePage(url, dir) {
         var $page = $('.page');
         var $pageItems = $page.children();
         var $curtPage;
-        var curtPage = 0;
+        console.log("____________startPage___________"+startPage);
+        var curtPage = startPage;
+        console.log("____________curtPage___________"+curtPage);
+        if (firstTime) {
+
+          curtPage = startPage;
+        }
+
         var totalPage = 0;
         var $lastPage;
         var lastPageUrl;
@@ -154,7 +187,10 @@ function findImagePage(url, dir) {
         if ($page.length) {
           $lastPage = $pageItems.last();
           $curtPage = $pageItems.filter('strong');
-          curtPage = $curtPage.text();
+          if (!firstTime) {
+            curtPage = $curtPage.text();
+          }
+          firstTime = false;
           // console.log($lastPage);
           lastPageUrl = $lastPage.attr('href');
           // console.log('href:' + href);
@@ -169,7 +205,7 @@ function findImagePage(url, dir) {
           }
         }
 
-        if (startPage < curtPage && curtPage < startPage + limit) {
+        if (startPage <= curtPage && curtPage < startPage + limit) {
           // console.log("arr:", arr);
           for (var i = 0; i < arr.length; i++) {
             var href = arr[i]['href'],
@@ -182,7 +218,7 @@ function findImagePage(url, dir) {
           console.log("lastPageUrl:" + lastPageUrl);
 
         }
-        if (curtPage < startPage + limit) {
+        if (curtPage < (startPage + limit)) {
           nextPage(curtPage, totalPage, lastPageUrl, dir);
         }
         // done();
@@ -259,12 +295,14 @@ function findImage(url, dir) {
               src: src
             };
             arr.push(img);
+            imgUrls.push(src);
             // console.log('src', src);
           }
         });
-        // console.log("arr:", arr);
-        console.log('下载目录:' + dir);
+        // console.log('下载目录:' + dir);
         downloadFiles(arr, dir);
+        // console.log("imgUrls---------"+imgUrls);
+        // recordUrl(urlJson,imgUrls);
       }
       // done();
     });
@@ -289,23 +327,54 @@ function downloadFile(file_url, DOWNLOAD_DIR) {
       /*,
           agent: false*/
   };
+  try{
+    var file_name = url.parse(file_url).pathname.split('/').pop();
+    fs.exists(file_name,function(exists){
+      // console.log('-----------------exists------------------'+exists);
+      if (!exists) {
+        var file = fs.createWriteStream(DOWNLOAD_DIR + file_name);
+        // console.log(options);
+        var req = http.get(options, function(res) {
+          res.on('data', function(data) {
+            file.write(data);
+          }).on('end', function() {
+            count++;
+            file.end();
+            console.log(file_name + 'download to ' + DOWNLOAD_DIR);
+          });
+        });
+        req.on('error', function(e) {
+          console.log('problem with request: ' + e.message);
+          console.log('Last successful request count = ' + count);
+        });
+      }
+    })
+  }catch(e){
+    console.log(e.stack);
+  }
+}
 
-  var file_name = url.parse(file_url).pathname.split('/').pop();
-  var file = fs.createWriteStream(DOWNLOAD_DIR + file_name);
-  // console.log(options);
-  var req = http.get(options, function(res) {
-    res.on('data', function(data) {
-      file.write(data);
-    }).on('end', function() {
-      count++;
-      file.end();
-      console.log(file_name + 'download to ' + DOWNLOAD_DIR);
-    });
-  });
-  req.on('error', function(e) {
-    console.log('problem with request: ' + e.message);
-    console.log('Last successful request count = ' + count);
-  });
+process.on('uncaughtException', function(err) {
+  console.log('Caught exception: ' + err);
+});
+
+function recordUrl(urlJson,imgUrls) {
+  // console.log('urlJson----------------'+urlJson);
+  // console.log('imgUrls----------------'+imgUrls);
+  var urls = imgUrls;
+  var content = '';
+  //var content = "var urls = ["
+  for (var i = 0; i < urls.length; i++) {
+    content += "\"" + urls[i] + "\",\n"
+  }
+  //content = content + "];"
+
+  var oldcontent = fs.readFileSync(urlJson);
+
+  // console.log('content---------------'+content);
+  // console.log('oldcontent---------------'+oldcontent);
+  // console.log('content+oldcontent----------'+content + oldcontent);
+  fs.writeFileSync(urlJson, content);
 }
 
 
